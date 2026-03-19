@@ -1,7 +1,7 @@
 # LLM From Scratch
 
 ## Project Goal
-Train a small language model from scratch that takes **100 tokens as input** and **predicts the next token** (autoregressive, one token at a time).
+Train a small language model from scratch that takes a **configurable context length** as input and **predicts the next token** (autoregressive, one token at a time).
 
 ## Dataset
 - **TinyStories** dataset located at `dataset/tiny-stories/train.csv`
@@ -28,7 +28,7 @@ Train a small language model from scratch that takes **100 tokens as input** and
 ```
 
 ## Architecture Decisions
-- **Context length**: 100 tokens
+- **Context length**: Configurable parameter (e.g. 64, 128, 256, 512+)
 - **Task**: Next-token prediction (causal language modeling)
 - **Tokenization**: Byte-level BPE (vocab_size=4096)
 - **Model**: TBD (decoder-only transformer)
