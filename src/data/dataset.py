@@ -25,14 +25,11 @@ class TokenDataset:
     """
 
     def __init__(self, tokens, context_length):
-        self.tokens = torch.tensor(np.asarray(tokens), dtype=torch.long)
+        # Use int32 to halve RAM — vocab size (4096) fits easily
+        self.tokens = torch.tensor(np.asarray(tokens), dtype=torch.int32)
         self.context_length = context_length
         self.n_sequences = len(self.tokens) - context_length
         self.n_tokens = len(self.tokens)
-
-        # Pin memory for faster CPU → GPU transfers
-        if torch.cuda.is_available():
-            self.tokens = self.tokens.pin_memory()
 
     # ------------------------------------------------------------------
     # Constructors
@@ -105,6 +102,6 @@ class TokenDataset:
         indices = starts.unsqueeze(1) + offsets.unsqueeze(0)   # (batch, ctx+1)
         sequences = self.tokens[indices]
 
-        inputs = sequences[:, :-1].to(device, non_blocking=True)
-        targets = sequences[:, 1:].to(device, non_blocking=True)
+        inputs = sequences[:, :-1].to(device=device, dtype=torch.long, non_blocking=True)
+        targets = sequences[:, 1:].to(device=device, dtype=torch.long, non_blocking=True)
         return inputs, targets
