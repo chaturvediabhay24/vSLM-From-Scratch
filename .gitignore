@@ -25,7 +25,5 @@ Thumbs.db
 # Environment variables
 .env
 
-# Dataset (uncomment if datasets are large/private)
-# dataset/
-
-dataset/
+# Dataset (large files)
+dataset/tiny-stories/train.csv
