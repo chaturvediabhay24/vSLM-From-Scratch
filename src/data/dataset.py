@@ -30,6 +30,10 @@ class TokenDataset:
         self.n_sequences = len(self.tokens) - context_length
         self.n_tokens = len(self.tokens)
 
+        # Pin memory for faster CPU → GPU transfers
+        if torch.cuda.is_available():
+            self.tokens = self.tokens.pin_memory()
+
     # ------------------------------------------------------------------
     # Constructors
     # ------------------------------------------------------------------
@@ -101,6 +105,6 @@ class TokenDataset:
         indices = starts.unsqueeze(1) + offsets.unsqueeze(0)   # (batch, ctx+1)
         sequences = self.tokens[indices]
 
-        inputs = sequences[:, :-1].to(device)
-        targets = sequences[:, 1:].to(device)
+        inputs = sequences[:, :-1].to(device, non_blocking=True)
+        targets = sequences[:, 1:].to(device, non_blocking=True)
         return inputs, targets

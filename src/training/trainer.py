@@ -35,6 +35,8 @@ class TrainingConfig:
     checkpoint_every: int = 10_000
     checkpoint_dir: str = "checkpoints"
     seed: int = 42
+    use_amp: bool = True            # automatic mixed precision (FP16)
+    compile_model: bool = True      # torch.compile for fused kernels
 
 
 # ------------------------------------------------------------------
@@ -75,13 +77,15 @@ class Trainer:
         """Average loss over several random validation batches."""
         self.model.eval()
         cfg = self.train_config
+        use_amp = cfg.use_amp and self.device.type == "cuda"
         total = 0.0
         for _ in range(cfg.eval_batches):
             inputs, targets = dataset.get_batch(cfg.batch_size, self.device)
-            logits = self.model(inputs)
-            loss = F.cross_entropy(
-                logits.view(-1, logits.size(-1)), targets.view(-1),
-            )
+            with torch.amp.autocast("cuda", dtype=torch.float16, enabled=use_amp):
+                logits = self.model(inputs)
+                loss = F.cross_entropy(
+                    logits.view(-1, logits.size(-1)), targets.view(-1),
+                )
             total += loss.item()
         self.model.train()
         return total / cfg.eval_batches
@@ -107,6 +111,18 @@ class Trainer:
         print(f"Model parameters: {model.count_parameters():,}")
         print(f"Device: {self.device}")
 
+        # torch.compile for fused kernels (PyTorch 2+)
+        if cfg.compile_model and hasattr(torch, "compile"):
+            print("Compiling model with torch.compile ...")
+            model = torch.compile(model)
+
+        # AMP scaler for mixed precision training
+        use_amp = cfg.use_amp and self.device.type == "cuda"
+        scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+        amp_dtype = torch.float16
+        if use_amp:
+            print("Using AMP (float16)")
+
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=cfg.learning_rate,
@@ -128,15 +144,18 @@ class Trainer:
         for step in range(1, cfg.max_steps + 1):
             inputs, targets = train_data.get_batch(cfg.batch_size, self.device)
 
-            logits = model(inputs)
-            loss = F.cross_entropy(
-                logits.view(-1, logits.size(-1)), targets.view(-1),
-            )
+            with torch.amp.autocast("cuda", dtype=amp_dtype, enabled=use_amp):
+                logits = model(inputs)
+                loss = F.cross_entropy(
+                    logits.view(-1, logits.size(-1)), targets.view(-1),
+                )
 
-            optimizer.zero_grad()
-            loss.backward()
+            optimizer.zero_grad(set_to_none=True)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_clip)
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
             scheduler.step()
 
             # Logging

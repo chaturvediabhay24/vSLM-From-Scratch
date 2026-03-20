@@ -35,12 +35,6 @@ class CausalSelfAttention(nn.Module):
         self.attn_drop = nn.Dropout(config.dropout_rate)
         self.proj_drop = nn.Dropout(config.dropout_rate)
 
-        # Causal mask — registered as buffer so it moves with .to(device)
-        self.register_buffer(
-            "mask",
-            torch.tril(torch.ones(config.context_length, config.context_length)),
-        )
-
     def forward(self, x):
         B, T, C = x.shape
 
@@ -52,17 +46,15 @@ class CausalSelfAttention(nn.Module):
         k = k.reshape(B, T, self.n_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(B, T, self.n_heads, self.head_dim).transpose(1, 2)
 
-        # Scaled dot-product attention
-        scale = self.head_dim ** -0.5
-        attn = (q @ k.transpose(-2, -1)) * scale  # (B, nh, T, T)
-
-        # Apply causal mask — prevent attending to future tokens
-        attn = attn.masked_fill(self.mask[:T, :T] == 0, float("-inf"))
-        attn = F.softmax(attn, dim=-1)
-        attn = self.attn_drop(attn)
+        # Use PyTorch 2 fused attention (FlashAttention / memory-efficient kernel)
+        out = F.scaled_dot_product_attention(
+            q, k, v,
+            is_causal=True,
+            dropout_p=self.attn_drop.p if self.training else 0.0,
+        )
 
         # Combine heads back to (B, T, C)
-        out = (attn @ v).transpose(1, 2).reshape(B, T, C)
+        out = out.transpose(1, 2).reshape(B, T, C)
 
         out = self.proj_drop(self.proj(out))
         return out
