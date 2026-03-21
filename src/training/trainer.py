@@ -37,6 +37,10 @@ class TrainingConfig:
     seed: int = 42
     use_amp: bool = True            # automatic mixed precision (FP16)
     compile_model: bool = True      # torch.compile for fused kernels
+    sample_prompt: str = ""         # if set, generate from this prompt after each eval
+    sample_max_tokens: int = 100
+    sample_temperature: float = 0.8
+    sample_top_k: int = 40
 
 
 # ------------------------------------------------------------------
@@ -94,13 +98,14 @@ class Trainer:
     # Main training loop
     # ------------------------------------------------------------------
 
-    def train(self, train_data, val_data=None, resume_from=None):
+    def train(self, train_data, val_data=None, resume_from=None, tokenizer=None):
         """Run the full training loop.
 
         Args:
             train_data:   TokenDataset for training.
             val_data:     TokenDataset for validation (optional).
             resume_from:  Path to a checkpoint file to resume from (optional).
+            tokenizer:    BPETokenizer instance for sample generation during eval (optional).
 
         Returns:
             dict of logged metrics (step, train_loss, val_loss).
@@ -189,6 +194,17 @@ class Trainer:
                 val_loss = self.evaluate(val_data)
                 print(f"  → val loss: {val_loss:.4f}")
                 history["val_loss"].append(val_loss)
+
+                # Sample generation to visually track quality
+                if cfg.sample_prompt and tokenizer is not None:
+                    sample = self.generate(
+                        tokenizer,
+                        prompt=cfg.sample_prompt,
+                        max_tokens=cfg.sample_max_tokens,
+                        temperature=cfg.sample_temperature,
+                        top_k=cfg.sample_top_k,
+                    )
+                    print(f"  → sample: {sample}")
 
             # Checkpoint
             if step % cfg.checkpoint_every == 0:
