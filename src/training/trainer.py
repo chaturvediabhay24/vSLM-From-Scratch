@@ -94,12 +94,13 @@ class Trainer:
     # Main training loop
     # ------------------------------------------------------------------
 
-    def train(self, train_data, val_data=None):
+    def train(self, train_data, val_data=None, resume_from=None):
         """Run the full training loop.
 
         Args:
-            train_data: TokenDataset for training.
-            val_data:   TokenDataset for validation (optional).
+            train_data:   TokenDataset for training.
+            val_data:     TokenDataset for validation (optional).
+            resume_from:  Path to a checkpoint file to resume from (optional).
 
         Returns:
             dict of logged metrics (step, train_loss, val_loss).
@@ -134,6 +135,16 @@ class Trainer:
             lr_lambda=lambda step: _lr_lambda(step, cfg.warmup_steps, cfg.max_steps),
         )
 
+        # Resume from checkpoint if provided
+        start_step = 0
+        if resume_from is not None:
+            resume_path = Path(resume_from)
+            if resume_path.exists():
+                start_step = self.load_checkpoint(resume_path, optimizer, scheduler)
+                print(f"Resumed from checkpoint: {resume_path} (step {start_step})")
+            else:
+                print(f"Checkpoint not found: {resume_path}, starting from scratch")
+
         ckpt_dir = Path(cfg.checkpoint_dir)
         ckpt_dir.mkdir(parents=True, exist_ok=True)
 
@@ -141,7 +152,7 @@ class Trainer:
         model.train()
         t0 = time.time()
 
-        for step in range(1, cfg.max_steps + 1):
+        for step in range(start_step + 1, cfg.max_steps + 1):
             inputs, targets = train_data.get_batch(cfg.batch_size, self.device)
 
             with torch.amp.autocast("cuda", dtype=amp_dtype, enabled=use_amp):
