@@ -1,7 +1,8 @@
-torch
+torch --index-url https://download.pytorch.org/whl/cpu
 numpy
 pandas
 matplotlib
 streamlit
 fastapi
-uvicorn
+uvicorn[standard]
+gunicorn
