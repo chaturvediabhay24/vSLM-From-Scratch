@@ -12,7 +12,7 @@ Training a small language model from scratch — from raw text to next-token pre
 | Tokenization | Done | Byte-level BPE, vocab size 4096, trained on 100K story sample — [Colab notebook](https://colab.research.google.com/drive/1Riq4f9PHAPItrwEiaKZQV_N97Hyt-rkk?usp=sharing) |
 | Corpus Encoding | Done | Tokenize full 2.1M stories into token IDs (parallel, resumable) |
 | Model | Done | Decoder-only transformer (~5M params), GPT-2 style pre-norm |
-| Training | Done | Next-token prediction (causal LM) — [Colab notebook](https://colab.research.google.com/drive/1z9Y99AVLcChQC8aGIN7Fg5uW3g-PxbA6) |
+| Training | Done | Next-token prediction (causal LM) — [Colab notebook](https://colab.research.google.com/drive/1kzIrr7xTC3hd9o7awdxsbxIIyY_n-UYK?usp=sharing) |
 | Deployment | Done | Interactive Streamlit UI showcasing the tokenizer |
 
 ## Demo
