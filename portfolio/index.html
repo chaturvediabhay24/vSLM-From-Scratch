@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>Abhay Chaturvedi</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Georgia&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #ffffff;
+      --text: #37352f;
+      --text-secondary: #6b6b6b;
+      --text-light: #9b9a97;
+      --border: #e8e8e8;
+      --accent: #37352f;
+      --tag-bg: #f1f1ef;
+      --hover: #f7f6f3;
+      --link: #2383e2;
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    html { scroll-behavior: smooth; color-scheme: light only; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 24px;
+    }
+
+    nav .nav-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 52px;
+    }
+
+    nav .logo {
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    nav .nav-links { display: flex; gap: 8px; }
+
+    nav .nav-links a {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    nav .nav-links a:hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section { padding: 64px 0; }
+    section + section { border-top: 1px solid var(--border); }
+
+    /* ── HERO ── */
+    .hero {
+      padding-top: 120px;
+      padding-bottom: 48px;
+      border-bottom: none;
+    }
+
+    .hero-emoji {
+      font-size: 64px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .hero h1 {
+      font-family: 'Georgia', serif;
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .hero .tagline {
+      font-size: 18px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+
+    .hero .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .hero .meta span { display: flex; align-items: center; gap: 6px; }
+
+    .hero .meta a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.15s;
+    }
+
+    .hero .meta a:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── SECTION HEADINGS ── */
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-light);
+      font-weight: 600;
+      margin-bottom: 32px;
+    }
+
+    /* ── ABOUT ── */
+    .about p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.8;
+    }
+
+    /* ── EXPERIENCE ── */
+    .exp-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .exp-item:last-child { margin-bottom: 0; }
+
+    .exp-date {
+      font-size: 14px;
+      color: var(--text-light);
+      padding-top: 2px;
+    }
+
+    .exp-content h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+      letter-spacing: -0.2px;
+    }
+
+    .exp-content .company {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .exp-content ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .exp-content ul li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      padding-left: 16px;
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    .exp-content ul li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--text-light);
+    }
+
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .skill-category h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tag {
+      font-size: 13px;
+      padding: 4px 10px;
+      background: var(--tag-bg);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ── EDUCATION ── */
+    .edu-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .edu-item:last-child { margin-bottom: 0; }
+
+    .edu-date {
+      font-size: 14px;
+      color: var(--text-light);
+      padding-top: 2px;
+    }
+
+    .edu-content h3 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      margin-bottom: 2px;
+    }
+
+    .edu-content p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ── CERTIFICATIONS & AWARDS ── */
+    .cert-list, .award-list {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 10px;
+    }
+
+    .cert-list li, .award-list li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 12px 16px;
+      background: var(--hover);
+      border-radius: 6px;
+      line-height: 1.5;
+    }
+
+    /* ── PUBLICATION ── */
+    .pub-item {
+      padding: 16px 20px;
+      background: var(--hover);
+      border-radius: 8px;
+      max-width: 500px;
+    }
+
+    .pub-item h3 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .pub-item p {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* ── PROJECTS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 16px;
+    }
+
+    .project-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .project-card:hover {
+      background: var(--hover);
+      box-shadow: var(--card-shadow);
+    }
+
+    .project-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .project-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .project-card .project-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .project-card .project-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .project-card .project-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--tag-bg);
+      border-radius: 3px;
+      color: var(--text-light);
+    }
+
+    .project-card .project-link {
+      font-size: 13px;
+      color: var(--link);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .project-card .project-link:hover { text-decoration: underline; }
+
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 14px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .contact-link:hover {
+      background: var(--hover);
+      border-color: var(--text-light);
+    }
+
+    .contact-link svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 13px;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 32px; }
+      .hero .tagline { font-size: 16px; }
+      .exp-item, .edu-item {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .exp-date, .edu-date { margin-bottom: 4px; }
+      nav .nav-links a { padding: 6px 8px; font-size: 13px; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .projects-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo">AC</a>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+        <a href="#education">Education</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- HERO -->
+    <section class="hero">
+      <span class="hero-emoji">&#128075;</span>
+      <h1>Abhay Chaturvedi</h1>
+      <p class="tagline">
+        ML Engineer specializing in Agentic AI &amp; Computer Vision. Building end-to-end AI pipelines that turn data into real business impact.
+      </p>
+      <div class="meta">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Bengaluru, India
+        </span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          AI/ML Engineer @ Pegasystems
+        </span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          M.Sc Data Science, IIIT Hyderabad
+        </span>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="about">
+      <div class="section-title">About</div>
+      <p>
+        I've always been captivated by how technology can blend with creativity to solve real-world problems. With a B.Tech in Computer Science and 4+ years of experience in data science and machine learning, I build solutions that deliver tangible business impact &mdash; from deploying 120B-parameter LLMs on A100 GPUs to designing AI agents serving hundreds of users daily. Currently at Pegasystems, I develop generative AI services, evaluation frameworks, and scalable inference pipelines.
+      </p>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section id="experience">
+      <div class="section-title">Experience</div>
+
+      <div class="exp-item">
+        <div class="exp-date">Jul 2024 &mdash; Present</div>
+        <div class="exp-content">
+          <h3>AI / ML Engineer</h3>
+          <div class="company">Pegasystems Inc. &middot; Bengaluru</div>
+          <ul>
+            <li>Built a Generative AI Assistant Service (OpenAI, Claude, Vertex), accelerating API calls by 70% and cutting resource usage by 20%</li>
+            <li>Engineered an AI Tracer for agent orchestration &mdash; 50% faster performance tracking</li>
+            <li>Launched an AI Evaluation Framework (LLM-as-a-judge), saving 30 min per eval run</li>
+            <li>Designed a Chat With Your Data AI Agent used by 50+ clients &amp; 400+ internal users &mdash; 4x daily query volume</li>
+            <li>Deployed GPT-OSS 20B &amp; 120B on vLLM + FlashAttention (A100 GPUs) &mdash; 5x faster inference, 50% lower memory</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">Mar 2022 &mdash; Jun 2024</div>
+        <div class="exp-content">
+          <h3>Data Scientist</h3>
+          <div class="company">AWONE AI &middot; Hyderabad</div>
+          <ul>
+            <li>Integrated Tabular, CV, NLP &amp; GenAI modules into CiBi no-code ML platform using DDP &mdash; 60% faster training, 12% accuracy boost</li>
+            <li>Automated end-to-end ML lifecycle with Ray framework &mdash; 80% less manual setup, 3x faster iteration</li>
+            <li>Fine-tuned &amp; deployed custom models for 7 enterprise clients &mdash; 15-20% better forecast accuracy</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">Aug 2021 &mdash; Feb 2022</div>
+        <div class="exp-content">
+          <h3>Data Scientist</h3>
+          <div class="company">UnitedHealth Group &middot; Bengaluru</div>
+          <ul>
+            <li>Deployed fraud detection on AWS EKS (Docker, K8s, FastAPI) &mdash; 80% latency reduction with automated CI/CD</li>
+            <li>Scaled containerized training pipeline &mdash; 30% faster training, 15% fewer false positives weekly</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">Mar 2021 &mdash; Jun 2021</div>
+        <div class="exp-content">
+          <h3>Data Science Intern</h3>
+          <div class="company">ShareChat Inc. &middot; Bengaluru</div>
+          <ul>
+            <li>Built a personalized recommendation engine with Neural Collaborative Filtering &mdash; 1.9% CVR lift (Golang, PyTorch)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">May 2020 &mdash; Jun 2020</div>
+        <div class="exp-content">
+          <h3>Data Science Intern</h3>
+          <div class="company">UnitedHealth Group &middot; Bengaluru</div>
+          <ul>
+            <li>Built deployment automation for NVIDIA Triton Inference Server &mdash; 35% lower latency, 100% GPU utilization</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+      <div class="section-title">Projects</div>
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <h3>LLM From Scratch</h3>
+          <p>Trained a ~5M parameter decoder-only transformer from scratch on TinyStories. Built the entire pipeline &mdash; byte-level BPE tokenizer (vocab 4096), parallel corpus encoding, PyTorch training loop with checkpointing, and a Streamlit demo app.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">PyTorch</span>
+              <span class="project-tag">Transformers</span>
+              <span class="project-tag">BPE</span>
+              <span class="project-tag">Streamlit</span>
+            </div>
+            <a class="project-link" href="/demo">Live Demo &rarr;</a>
+            <a class="project-link" href="https://github.com/chaturvediabhay24/llm-from-scratch" target="_blank">GitHub &rarr;</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>Generative AI Assistant Service</h3>
+          <p>Multi-provider AI assistant leveraging OpenAI, Anthropic Claude, and Google Vertex APIs. Accelerated API calls by 70% and reduced resource consumption by 20% at Pegasystems.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">OpenAI</span>
+              <span class="project-tag">Claude</span>
+              <span class="project-tag">Vertex AI</span>
+              <span class="project-tag">GenAI</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>Chat With Your Data &mdash; AI Agent</h3>
+          <p>Conversational agent that empowers users to self-serve data insights via natural language. Deployed to 50+ clients and 400+ internal users, driving a 4x increase in daily query volume.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">LangChain</span>
+              <span class="project-tag">LLMs</span>
+              <span class="project-tag">FAISS</span>
+              <span class="project-tag">FastAPI</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>AI Evaluation Framework</h3>
+          <p>Benchmarking system for AI agent performance using LLM-as-a-judge and pairwise comparison methods. Reduced evaluation time by 30 minutes per run.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">LLM-as-Judge</span>
+              <span class="project-tag">Evaluation</span>
+              <span class="project-tag">Python</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>GPT-OSS LLM Deployment</h3>
+          <p>Deployed 20B and 120B parameter open-source LLMs using vLLM with FlashAttention on A100 GPUs. Achieved 5x faster inference and 50% lower memory overhead.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">vLLM</span>
+              <span class="project-tag">FlashAttention</span>
+              <span class="project-tag">A100</span>
+              <span class="project-tag">CUDA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>CiBi No-Code ML Platform</h3>
+          <p>Integrated Tabular, CV, NLP, and GenAI modules into a no-code ML platform with Distributed Data Parallel training. 60% training time reduction, 12% accuracy improvement.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">Ray</span>
+              <span class="project-tag">DDP</span>
+              <span class="project-tag">MLflow</span>
+              <span class="project-tag">No-Code</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>Personalized Recommendation Engine</h3>
+          <p>Neural Collaborative Filtering based ad recommendation system at ShareChat. Boosted click-through rate by 1.9% across millions of users.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">NCF</span>
+              <span class="project-tag">PyTorch</span>
+              <span class="project-tag">Golang</span>
+              <span class="project-tag">RecSys</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>Fraud Detection System</h3>
+          <p>Containerized fraud detection pipeline on AWS EKS with Docker, Kubernetes, and FastAPI. 80% latency reduction and 15% fewer false positives weekly.</p>
+          <div class="project-meta">
+            <div class="project-tags">
+              <span class="project-tag">AWS EKS</span>
+              <span class="project-tag">Docker</span>
+              <span class="project-tag">K8s</span>
+              <span class="project-tag">CI/CD</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills">
+      <div class="section-title">Skills</div>
+      <div class="skills-grid">
+        <div class="skill-category">
+          <h3>Programming</h3>
+          <div class="tags">
+            <span class="tag">Python</span>
+            <span class="tag">C++</span>
+            <span class="tag">SQL</span>
+            <span class="tag">Golang</span>
+            <span class="tag">PySpark</span>
+            <span class="tag">DSA</span>
+          </div>
+        </div>
+        <div class="skill-category">
+          <h3>ML &amp; AI</h3>
+          <div class="tags">
+            <span class="tag">PyTorch</span>
+            <span class="tag">TensorFlow</span>
+            <span class="tag">LLMs</span>
+            <span class="tag">GenAI</span>
+            <span class="tag">NLP</span>
+            <span class="tag">Computer Vision</span>
+            <span class="tag">Transformers</span>
+            <span class="tag">XGBoost</span>
+            <span class="tag">Reinforcement Learning</span>
+            <span class="tag">SHAP / LIME</span>
+          </div>
+        </div>
+        <div class="skill-category">
+          <h3>Infra &amp; Tools</h3>
+          <div class="tags">
+            <span class="tag">Docker</span>
+            <span class="tag">Kubernetes</span>
+            <span class="tag">AWS</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">Kafka</span>
+            <span class="tag">Airflow</span>
+            <span class="tag">MLflow</span>
+            <span class="tag">Triton</span>
+            <span class="tag">TensorRT</span>
+            <span class="tag">vLLM</span>
+          </div>
+        </div>
+        <div class="skill-category">
+          <h3>GenAI Stack</h3>
+          <div class="tags">
+            <span class="tag">LangChain</span>
+            <span class="tag">LlamaIndex</span>
+            <span class="tag">FAISS</span>
+            <span class="tag">Prompt Engineering</span>
+            <span class="tag">Ray</span>
+            <span class="tag">A/B Testing</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDUCATION -->
+    <section id="education">
+      <div class="section-title">Education</div>
+
+      <div class="edu-item">
+        <div class="edu-date">2025</div>
+        <div class="edu-content">
+          <h3>IIIT Hyderabad</h3>
+          <p>M.Sc &mdash; Data Science</p>
+        </div>
+      </div>
+
+      <div class="edu-item">
+        <div class="edu-date">2017 &mdash; 2021</div>
+        <div class="edu-content">
+          <h3>IIIT Gwalior (ABV-IIITM)</h3>
+          <p>B.Tech &mdash; Computer Science &amp; Engineering</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CERTIFICATIONS & AWARDS -->
+    <section>
+      <div class="section-title">Certifications</div>
+      <ul class="cert-list">
+        <li>Convolutional Neural Networks in TensorFlow</li>
+        <li>Natural Language Processing in TensorFlow</li>
+        <li>TensorFlow in Practice Specialization</li>
+        <li>Intro to TensorFlow for AI, ML &amp; Deep Learning</li>
+        <li>NLP with Classification &amp; Vector Spaces</li>
+      </ul>
+
+      <div class="section-title" style="margin-top: 48px;">Awards</div>
+      <ul class="award-list">
+        <li>Pega Hackathon 12 &mdash; AI First at Pega Award</li>
+        <li>Splash Award &mdash; Pegasystems</li>
+        <li>Real Time Recognition</li>
+      </ul>
+    </section>
+
+    <!-- PUBLICATION -->
+    <section>
+      <div class="section-title">Publication</div>
+      <div class="pub-item">
+        <h3>Understanding Nvidia TensorRT for Deep Learning Model Optimization</h3>
+        <p>Medium &middot; Technical deep-dive</p>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <div class="section-title">Get in touch</div>
+      <div class="contact-grid">
+        <a class="contact-link" href="mailto:chaturvediabhay24@gmail.com">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          chaturvediabhay24@gmail.com
+        </a>
+        <a class="contact-link" href="https://github.com/chaturvediabhay24" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          GitHub
+        </a>
+        <a class="contact-link" href="https://www.linkedin.com/in/chaturvediabhay24" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <a class="contact-link" href="https://medium.com/@abhay_chaturvedi" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>
+          Medium
+        </a>
+        <a class="contact-link" href="tel:+917999481282">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          +91 7999481282
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    &copy; 2026 Abhay Chaturvedi
+  </footer>
+
+</body>
+</html>

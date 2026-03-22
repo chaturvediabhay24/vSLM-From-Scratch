@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>LLM From Scratch — Demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Georgia&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#fff;--text:#37352f;--text2:#6b6b6b;--text3:#9b9a97;
+      --border:#e8e8e8;--tag-bg:#f1f1ef;--hover:#f7f6f3;
+      --link:#2383e2;--green:#2ea043;--red:#cf222e;--orange:#d4880f;
+      --card-shadow:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.06);
+      --panel:#1e1e2e;--panel-text:#cdd6f4;--panel-green:#a6e3a1;
+    }
+    html{scroll-behavior:smooth;color-scheme:light only}
+    body{font-family:'Inter',-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
+
+    /* ── NAV ── */
+    nav{position:fixed;top:0;width:100%;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:100;padding:0 24px}
+    .nav-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:52px}
+    .nav-back{font-size:14px;color:var(--text2);text-decoration:none;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;transition:background .15s}
+    .nav-back:hover{background:var(--hover);color:var(--text)}
+    .nav-title{font-size:14px;font-weight:600;color:var(--text)}
+
+    /* ── PAGE ── */
+    .page{max-width:900px;margin:0 auto;padding:80px 24px 60px}
+
+    /* ── HEADER ── */
+    .demo-header{margin-bottom:32px}
+    .demo-header h1{font-family:Georgia,serif;font-size:36px;font-weight:700;letter-spacing:-1px;margin-bottom:8px}
+    .demo-header p{font-size:16px;color:var(--text2);max-width:600px}
+
+    /* ── TAB BAR ── */
+    .tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:32px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .tab-btn{padding:10px 16px;font-size:14px;font-weight:500;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+    .tab-btn:hover{color:var(--text)}
+    .tab-btn.active{color:var(--text);border-bottom-color:var(--text)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* ── SECTION ── */
+    .section-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600;margin-bottom:20px}
+    .sub-section{margin-bottom:48px}
+    .sub-title{font-size:18px;font-weight:600;margin-bottom:12px;letter-spacing:-.2px}
+
+    /* ── FORMS ── */
+    textarea,input[type=text],select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;color:var(--text);background:var(--bg);resize:vertical;transition:border-color .15s}
+    textarea:focus,input[type=text]:focus,select:focus{outline:none;border-color:var(--link)}
+    .input-label{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block}
+    .slider-group{display:flex;flex-direction:column;gap:4px}
+    .slider-group label{font-size:13px;color:var(--text2);display:flex;justify-content:space-between}
+    .slider-group input[type=range]{width:100%;accent-color:var(--text)}
+    .btn{padding:8px 20px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text);transition:background .15s}
+    .btn:hover{background:var(--hover)}
+    .btn-primary{background:var(--text);color:#fff;border-color:var(--text)}
+    .btn-primary:hover{background:#555}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+    .btn-sm{padding:5px 12px;font-size:13px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+
+    /* ── EXAMPLE CHIPS ── */
+    .example-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+    .example-chip{padding:5px 12px;font-size:13px;background:var(--tag-bg);border:none;border-radius:4px;color:var(--text2);cursor:pointer;transition:background .15s}
+    .example-chip:hover{background:#e5e5e2;color:var(--text)}
+
+    /* ── TOKEN CHIPS ── */
+    .token-container{display:flex;flex-wrap:wrap;gap:4px;padding:14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;min-height:48px}
+    .tk{display:inline-flex;align-items:center;padding:3px 7px;border-radius:4px;cursor:default;color:#1e1e2e;font-weight:500;transition:transform .1s}
+    .tk:hover{transform:scale(1.08);z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    .tk.sp{border:2px solid var(--red)}
+
+    /* ── STATS ROW ── */
+    .stats-row{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+    .stat-box{flex:1;min-width:100px;padding:12px 16px;background:var(--hover);border-radius:8px;text-align:center}
+    .stat-box .val{font-size:22px;font-weight:700;color:var(--text)}
+    .stat-box .lbl{font-size:12px;color:var(--text3);margin-top:2px}
+
+    /* ── CONFIG TABLE ── */
+    .cfg-table{width:100%;border-collapse:collapse;font-size:14px}
+    .cfg-table td{padding:8px 14px;border-bottom:1px solid var(--border)}
+    .cfg-table td:first-child{color:var(--text3);font-weight:500;width:180px}
+    .cfg-table td:last-child{font-weight:600}
+
+    /* ── PIPELINE ── */
+    .pipeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:20px 0}
+    .pipe-step{padding:8px 16px;background:var(--tag-bg);border-radius:6px;font-size:13px;font-weight:500;color:var(--text2)}
+    .pipe-arrow{color:var(--text3);font-size:16px}
+
+    /* ── GENERATION OUTPUT ── */
+    .gen-output{font-family:Georgia,serif;font-size:16px;line-height:1.9;padding:20px;background:var(--panel);border-radius:10px;border:1px solid #313244;min-height:80px;white-space:pre-wrap;word-wrap:break-word;color:var(--panel-text)}
+    .gen-output .prompt{color:var(--panel-text)}
+    .gen-output .generated{color:var(--panel-green)}
+    .gen-output .cursor{display:inline-block;width:2px;height:18px;background:var(--panel-green);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:2px}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+    /* ── MERGE TABLE ── */
+    .merge-tbl{width:100%;border-collapse:collapse;font-size:13px}
+    .merge-tbl th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);font-weight:600;color:var(--text3);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+    .merge-tbl td{padding:8px 12px;border-bottom:1px solid var(--border)}
+    .merge-tbl tr:hover td{background:var(--hover)}
+
+    /* ── STEP CHIPS (BPE walkthrough) ── */
+    .step-row{display:flex;flex-wrap:wrap;gap:3px;align-items:center;padding:10px 14px;margin:4px 0;background:var(--hover);border-radius:6px;border-left:3px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:13px}
+    .step-row.active{background:#fff8e1;border-left-color:var(--orange)}
+    .merge-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin-left:8px}
+    .badge-rank{background:#e3f2fd;color:#1565c0}
+    .badge-pair{background:#fce4ec;color:#c62828}
+    .badge-token{background:#e8f5e9;color:#2e7d32}
+
+    /* ── GALLERY ── */
+    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+    .gallery-card{border:1px solid var(--border);border-radius:8px;padding:16px 20px;transition:background .15s,box-shadow .15s;cursor:default}
+    .gallery-card:hover{background:var(--hover);box-shadow:var(--card-shadow)}
+    .gallery-card .cat{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;margin-bottom:4px}
+    .gallery-card .prompt-preview{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text2);padding:8px;background:var(--tag-bg);border-radius:4px;margin:8px 0;white-space:pre-wrap}
+
+    /* ── ATTENTION ── */
+    .attn-canvas-wrap{overflow-x:auto;margin:16px 0}
+    canvas#attnCanvas{display:block}
+
+    /* ── PERPLEXITY ── */
+    .ppl-score{font-size:48px;font-weight:700;text-align:center;margin:20px 0}
+    .ppl-label{text-align:center;font-size:14px;color:var(--text2)}
+
+    /* ── MSG ── */
+    .msg-info{padding:12px 16px;background:#f0f7ff;border:1px solid #c8ddf5;border-radius:6px;font-size:14px;color:#1a4b8c;margin:12px 0}
+    .msg-warn{padding:12px 16px;background:#fff8e1;border:1px solid #f5e6a8;border-radius:6px;font-size:14px;color:#8a6d00;margin:12px 0}
+    .msg-err{padding:12px 16px;background:#fff0f0;border:1px solid #f5c8c8;border-radius:6px;font-size:14px;color:#8a0000;margin:12px 0}
+
+    /* ── CODE BLOCK ── */
+    .code-block{font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 16px;background:var(--tag-bg);border-radius:6px;white-space:pre-wrap;word-break:break-all;color:var(--text2)}
+
+    /* ── GRID HELPERS ── */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:640px){
+      .demo-header h1{font-size:28px}
+      .grid-2,.grid-3{grid-template-columns:1fr}
+      .gallery-grid{grid-template-columns:1fr}
+      .stats-row{flex-direction:column}
+      .tab-btn{padding:8px 12px;font-size:13px}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+      Portfolio
+    </a>
+    <span class="nav-title">LLM From Scratch</span>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="demo-header">
+    <h1>LLM From Scratch</h1>
+    <p>Interactive demo of a ~5M parameter decoder-only transformer trained from scratch on TinyStories.</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+    <button class="tab-btn" onclick="switchTab('tokenizer')">Tokenizer</button>
+    <button class="tab-btn" onclick="switchTab('bpe')">BPE Explorer</button>
+    <button class="tab-btn" onclick="switchTab('generate')">Generation</button>
+    <button class="tab-btn" onclick="switchTab('gallery')">Gallery</button>
+    <button class="tab-btn" onclick="switchTab('internals')">Internals</button>
+  </div>
+
+  <!-- ════════════════════ OVERVIEW ════════════════════ -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="sub-section">
+      <div class="section-label">Pipeline</div>
+      <div class="pipeline">
+        <span class="pipe-step">Raw Text</span><span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">Preprocessing</span><span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">BPE Tokenization</span><span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">Corpus Encoding</span><span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">Model Training</span><span class="pipe-arrow">&rarr;</span>
+        <span class="pipe-step">Text Generation</span>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="section-label">Architecture</div>
+      <div id="overview-config">
+        <div class="msg-info">Loading model info...</div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="section-label">Design Decisions</div>
+      <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:14px;font-weight:500;padding:8px 0">Why vocab_size = 4,096?</summary><p style="font-size:14px;color:var(--text2);padding:8px 0 8px 16px">Balances compression efficiency against model complexity. Small enough to train quickly, large enough to capture common English subwords.</p></details>
+      <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:14px;font-weight:500;padding:8px 0">Why byte-level BPE?</summary><p style="font-size:14px;color:var(--text2);padding:8px 0 8px 16px">No UNK tokens ever &mdash; any text can be encoded as raw bytes. Language-agnostic base vocabulary of 256 byte values.</p></details>
+      <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:14px;font-weight:500;padding:8px 0">Why decoder-only transformer?</summary><p style="font-size:14px;color:var(--text2);padding:8px 0 8px 16px">Autoregressive next-token prediction is the standard architecture for text generation (GPT-2 style). Simpler than encoder-decoder for our use case.</p></details>
+      <details><summary style="cursor:pointer;font-size:14px;font-weight:500;padding:8px 0">What can this model do?</summary>
+        <div style="font-size:14px;color:var(--text2);padding:8px 0 8px 16px">
+          <p style="margin-bottom:8px"><strong>Good at:</strong> Story openings, narrative flow, simple vocabulary, children's story patterns, grammatical correctness.</p>
+          <p><strong>Limitations:</strong> Not ChatGPT &mdash; only 5M params vs 175B+. Context window of 128 tokens (~60 words). No factual knowledge, can't do math, code, or non-English text well. May repeat itself in long generations.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ════════════════════ TOKENIZER ════════════════════ -->
+  <div id="tab-tokenizer" class="tab-panel">
+    <div class="sub-section">
+      <div class="section-label">Playground</div>
+      <div class="example-chips">
+        <button class="example-chip" onclick="setTokenInput('Once upon a time, there was a little girl named Lily.')">Story opener</button>
+        <button class="example-chip" onclick="setTokenInput('The quick brown fox jumps over the lazy dog.')">Pangram</button>
+        <button class="example-chip" onclick="setTokenInput('Hello! How are you today? 😊')">Emoji</button>
+        <button class="example-chip" onclick="setTokenInput('def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)')">Code</button>
+        <button class="example-chip" onclick="setTokenInput('aaaa bbbb cccc abababab')">Repetition</button>
+      </div>
+      <textarea id="tok-input" rows="3" placeholder="Type or paste text to tokenize...">Once upon a time, there was a little girl named Lily.</textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runTokenize()">Tokenize</button>
+      </div>
+      <div id="tok-tokens"></div>
+      <div id="tok-stats"></div>
+      <div id="tok-ids" style="margin-top:16px"></div>
+    </div>
+
+    <div class="sub-section">
+      <div class="section-label">Compression Comparison</div>
+      <textarea id="comp-input" rows="3" placeholder="Text to compare...">Once upon a time, there was a little girl named Lily. She loved to play outside with her friends.</textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runCompression()">Compare</button>
+      </div>
+      <div id="comp-result"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ BPE EXPLORER ════════════════════ -->
+  <div id="tab-bpe" class="tab-panel">
+    <div class="sub-section">
+      <div class="section-label">Merge Walkthrough</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:12px">Watch how BPE merges byte-level tokens step by step for a single word.</p>
+      <input type="text" id="bpe-word" value="unhappiness" placeholder="Enter a word..." style="max-width:300px">
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runEncodeSteps()">Show Steps</button>
+      </div>
+      <div id="bpe-steps"></div>
+    </div>
+
+    <div class="sub-section">
+      <div class="section-label">Merge Table</div>
+      <input type="text" id="merge-search" placeholder="Search merges by result token..." oninput="searchMerges()" style="max-width:400px;margin-bottom:12px">
+      <div id="merge-table"></div>
+      <div class="btn-row" id="merge-pager"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ GENERATION ════════════════════ -->
+  <div id="tab-generate" class="tab-panel">
+    <div class="sub-section">
+      <div class="section-label">Text Generation</div>
+      <div class="example-chips">
+        <button class="example-chip" onclick="setGenInput('Once upon a time, there was a little')">Story start</button>
+        <button class="example-chip" onclick="setGenInput('The dog was very happy because')">Cause &amp; effect</button>
+        <button class="example-chip" onclick="setGenInput('Lily went to the park and saw a')">Action</button>
+        <button class="example-chip" onclick="setGenInput('One day, a boy named Tom found a')">Discovery</button>
+        <button class="example-chip" onclick="setGenInput('She was sad because her')">Emotion</button>
+        <button class="example-chip" onclick="setGenInput(&quot;\&quot;Can I play with you?\&quot; asked the little&quot;)">Dialogue</button>
+      </div>
+      <textarea id="gen-input" rows="3" placeholder="Enter a prompt...">Once upon a time, there was a little</textarea>
+
+      <div class="grid-3" style="margin:16px 0">
+        <div class="slider-group">
+          <label>Temperature <span id="temp-val">0.8</span></label>
+          <input type="range" id="gen-temp" min="0.1" max="2.0" step="0.1" value="0.8" oninput="$('#temp-val').textContent=this.value">
+        </div>
+        <div class="slider-group">
+          <label>Top-k <span id="topk-val">40</span></label>
+          <input type="range" id="gen-topk" min="0" max="200" step="5" value="40" oninput="$('#topk-val').textContent=this.value">
+        </div>
+        <div class="slider-group">
+          <label>Max tokens <span id="maxt-val">200</span></label>
+          <input type="range" id="gen-maxt" min="10" max="500" step="10" value="200" oninput="$('#maxt-val').textContent=this.value">
+        </div>
+        <div class="slider-group">
+          <label>Top-p <span id="topp-val">0.0</span></label>
+          <input type="range" id="gen-topp" min="0" max="1.0" step="0.05" value="0" oninput="$('#topp-val').textContent=this.value">
+        </div>
+        <div class="slider-group">
+          <label>Rep. penalty <span id="rep-val">1.2</span></label>
+          <input type="range" id="gen-rep" min="1.0" max="2.0" step="0.1" value="1.2" oninput="$('#rep-val').textContent=this.value">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="gen-btn" onclick="runGenerate()">Generate</button>
+      </div>
+      <div id="gen-output"></div>
+      <div id="gen-stats" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ GALLERY ════════════════════ -->
+  <div id="tab-gallery" class="tab-panel">
+    <div class="sub-section">
+      <div class="section-label">Curated Prompts</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Click a card to generate a completion. These prompts showcase different patterns the model has learned.</p>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </div>
+    <div class="sub-section">
+      <div class="section-label">Output</div>
+      <div id="gallery-output"><div class="msg-info">Click a prompt above to generate text.</div></div>
+    </div>
+    <div class="sub-section">
+      <div class="section-label">Failure Cases</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">These prompts are outside the model's training domain. The model will produce incoherent or incorrect results.</p>
+      <div class="gallery-grid" id="gallery-failures"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ INTERNALS ════════════════════ -->
+  <div id="tab-internals" class="tab-panel">
+    <div class="sub-section">
+      <div class="section-label">Attention Heatmap</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:12px">Visualize which tokens attend to which. Brighter = stronger attention. Upper-right triangle is always zero (causal mask).</p>
+      <input type="text" id="attn-text" value="Once upon a time there was a little girl" placeholder="Short text (< 40 tokens)" style="max-width:500px">
+      <div style="display:flex;gap:12px;margin:12px 0;align-items:end">
+        <div><label class="input-label">Layer</label><select id="attn-layer" style="width:100px"></select></div>
+        <div><label class="input-label">Head</label><select id="attn-head" style="width:100px"></select></div>
+        <button class="btn btn-primary" onclick="runAttention()">Visualize</button>
+      </div>
+      <div class="attn-canvas-wrap"><canvas id="attnCanvas" width="0" height="0"></canvas></div>
+      <div id="attn-msg"></div>
+    </div>
+
+    <div class="sub-section">
+      <div class="section-label">Perplexity Scorer</div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:12px">Measures how "surprised" the model is by the text. Lower = more familiar (in-domain). Higher = more surprising (out-of-domain).</p>
+      <div class="example-chips">
+        <button class="example-chip" onclick="setPplInput('Once upon a time, there was a little bear named Teddy. He lived in a cozy cave with his mama. One day, Teddy went outside to play.')">TinyStories-like</button>
+        <button class="example-chip" onclick="setPplInput('The Federal Reserve raised interest rates by 25 basis points in response to persistent inflationary pressures across the U.S. economy.')">Wikipedia-style</button>
+        <button class="example-chip" onclick="setPplInput('xkjf qlmn wrtz bvps ghyd ojic aelu snmf krtb plqw')">Nonsense</button>
+      </div>
+      <textarea id="ppl-input" rows="3" placeholder="Enter text to score...">Once upon a time, there was a little bear named Teddy. He lived in a cozy cave with his mama.</textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runPerplexity()">Compute Perplexity</button>
+      </div>
+      <div id="ppl-result"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+
+/* ── Tab switching ── */
+function switchTab(id){
+  $$('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $$('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${id}"]`).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+/* ── API helpers ── */
+async function api(path,body){
+  const opts={headers:{'Content-Type':'application/json'}};
+  if(body!==undefined){opts.method='POST';opts.body=JSON.stringify(body);}
+  const r=await fetch(path,opts);
+  return r.json();
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function visual(s){return escHtml(s).replace(/ /g,'&middot;').replace(/\n/g,'\\n').replace(/\t/g,'\\t')||'&empty;';}
+
+/* ── Render token chips ── */
+function renderTokens(tokens,containerId){
+  const html=tokens.map(t=>{
+    const cls='tk'+(t.special?' sp':'');
+    return `<span class="${cls}" style="background:${t.color}" title="ID: ${t.id} | ${escHtml(t.text)}">${visual(t.text)}</span>`;
+  }).join('');
+  $(containerId).innerHTML=`<div class="token-container">${html}</div>`;
+}
+
+/* ════════════════════ TOKENIZER ════════════════════ */
+function setTokenInput(text){$('#tok-input').value=text;runTokenize();}
+
+async function runTokenize(){
+  const text=$('#tok-input').value;
+  if(!text){$('#tok-tokens').innerHTML='';$('#tok-stats').innerHTML='';$('#tok-ids').innerHTML='';return;}
+  const d=await api('/api/tokenize',{text});
+  renderTokens(d.tokens,'#tok-tokens');
+  const s=d.stats;
+  $('#tok-stats').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-box"><div class="val">${s.num_tokens}</div><div class="lbl">Tokens</div></div>
+      <div class="stat-box"><div class="val">${s.num_bytes}</div><div class="lbl">Bytes</div></div>
+      <div class="stat-box"><div class="val">${s.num_chars}</div><div class="lbl">Characters</div></div>
+      <div class="stat-box"><div class="val">${s.bytes_per_token}</div><div class="lbl">Bytes / Token</div></div>
+      <div class="stat-box"><div class="val">${s.tokens_per_word}</div><div class="lbl">Tokens / Word</div></div>
+    </div>`;
+  const rtMsg=d.roundtrip_ok
+    ?'<span style="color:var(--green)">Roundtrip OK</span>'
+    :'<span style="color:var(--red)">Roundtrip mismatch</span>';
+  $('#tok-ids').innerHTML=`
+    <div class="grid-2">
+      <div><span class="input-label">Token IDs</span><div class="code-block">[${d.token_ids.join(', ')}]</div></div>
+      <div><span class="input-label">Decoded ${rtMsg}</span><div class="code-block">${escHtml(d.decoded)}</div></div>
+    </div>`;
+}
+
+/* ── Compression ── */
+async function runCompression(){
+  const text=$('#comp-input').value;
+  if(!text)return;
+  const d=await api('/api/compression',{text});
+  const b=d.bpe;
+  const max=Math.max(d.char_tokens,b.num_tokens,d.word_tokens);
+  const bar=(val,color,label)=>`
+    <div style="display:flex;align-items:center;gap:12px;margin:6px 0">
+      <span style="min-width:100px;font-size:13px;color:var(--text2);text-align:right">${label}</span>
+      <div style="flex:1;background:var(--tag-bg);border-radius:4px;height:28px;overflow:hidden">
+        <div style="width:${(val/max*100).toFixed(1)}%;background:${color};height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px">
+          <span style="font-size:12px;font-weight:600;color:#fff">${val}</span>
+        </div>
+      </div>
+    </div>`;
+  $('#comp-result').innerHTML=`
+    <div style="margin-top:16px">
+      ${bar(d.char_tokens,'#e57373','Character')}
+      ${bar(b.num_tokens,'#64b5f6','BPE (ours)')}
+      ${bar(d.word_tokens,'#81c784','Word')}
+      <p style="font-size:13px;color:var(--text3);margin-top:12px">BPE achieves <strong>${b.bytes_per_token} bytes/token</strong> (${b.tokens_per_word} tokens/word). Character-level: 1.0 bytes/token. BPE compresses ${(d.char_tokens/b.num_tokens).toFixed(1)}x vs characters.</p>
+    </div>`;
+}
+
+/* ════════════════════ BPE EXPLORER ════════════════════ */
+async function runEncodeSteps(){
+  const word=$('#bpe-word').value.trim();
+  if(!word)return;
+  const d=await api('/api/encode-steps',{word});
+  let html='';
+  d.steps.forEach((s,i)=>{
+    const isActive=i===d.steps.length-1;
+    const chips=s.token_ids.map((tid,j)=>{
+      const hl=s.new_token_id!==null&&tid===s.new_token_id?' style="border:2px solid var(--orange);box-shadow:0 0 6px rgba(212,136,15,.4)"':'';
+      return `<span class="tk"${hl} style="background:${s.colors[j]}" title="ID: ${tid}">${visual(s.token_texts[j])}</span>`;
+    }).join('');
+    const badges=s.merged_pair_text?`
+      <span class="merge-badge badge-pair">${escHtml(s.merged_pair_text)}</span>
+      <span class="merge-badge badge-rank">rank ${s.merge_rank}</span>
+      <span class="merge-badge badge-token">&rarr; ${escHtml(s.new_token_text)} (${s.new_token_id})</span>`:'';
+    html+=`<div class="step-row${isActive?' active':''}">
+      <span style="color:var(--text3);min-width:50px;font-size:12px">Step ${s.step}</span>
+      ${chips}${badges}
+    </div>`;
+  });
+  html+=`<p style="font-size:13px;color:var(--text3);margin-top:8px">${d.steps.length-1} merges applied. Final: ${d.steps[d.steps.length-1].token_ids.length} token(s).</p>`;
+  $('#bpe-steps').innerHTML=html;
+}
+
+/* ── Merge Table ── */
+let mergeOffset=0;
+async function searchMerges(reset){
+  if(reset!==false)mergeOffset=0;
+  const q=$('#merge-search').value;
+  const d=await api(`/api/merges?q=${encodeURIComponent(q)}&limit=50&offset=${mergeOffset}`);
+  let rows=d.merges.map(m=>`<tr>
+    <td>${m.rank}</td><td>${escHtml(m.a)}</td><td>${m.a_id}</td>
+    <td>${escHtml(m.b)}</td><td>${m.b_id}</td>
+    <td><strong>${escHtml(m.result)}</strong></td><td>${m.result_id}</td>
+  </tr>`).join('');
+  $('#merge-table').innerHTML=`
+    <p style="font-size:13px;color:var(--text3);margin-bottom:8px">${d.total} merges${q?' matching "'+escHtml(q)+'"':''}</p>
+    <div style="overflow-x:auto"><table class="merge-tbl">
+      <thead><tr><th>Rank</th><th>Token A</th><th>ID</th><th>Token B</th><th>ID</th><th>Result</th><th>ID</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  let pager='';
+  if(mergeOffset>0)pager+=`<button class="btn btn-sm" onclick="mergeOffset-=50;searchMerges(false)">&larr; Prev</button>`;
+  if(mergeOffset+50<d.total)pager+=`<button class="btn btn-sm" onclick="mergeOffset+=50;searchMerges(false)">Next &rarr;</button>`;
+  pager+=`<span style="font-size:13px;color:var(--text3);margin-left:8px">${mergeOffset+1}&ndash;${Math.min(mergeOffset+50,d.total)} of ${d.total}</span>`;
+  $('#merge-pager').innerHTML=pager;
+}
+
+/* ════════════════════ GENERATION ════════════════════ */
+function setGenInput(text){$('#gen-input').value=text;}
+
+async function runGenerate(){
+  const prompt=$('#gen-input').value;
+  if(!prompt)return;
+  const btn=$('#gen-btn');
+  btn.disabled=true;btn.textContent='Generating...';
+  const params={
+    prompt,
+    max_new_tokens:+$('#gen-maxt').value,
+    temperature:+$('#gen-temp').value,
+    top_k:+$('#gen-topk').value,
+    top_p:+$('#gen-topp').value,
+    repetition_penalty:+$('#gen-rep').value,
+  };
+  $('#gen-output').innerHTML=`<div class="gen-output"><span class="prompt">${escHtml(prompt)}</span><span class="generated"></span><span class="cursor"></span></div>`;
+  $('#gen-stats').innerHTML='';
+  const start=performance.now();
+  let tokenCount=0;
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
+    if(!res.ok){$('#gen-output').innerHTML=`<div class="msg-err">Error: ${res.statusText}</div>`;return;}
+    const reader=res.body.getReader();
+    const decoder=new TextDecoder();
+    let buf='';
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        try{
+          const d=JSON.parse(line.slice(6));
+          if(d.d)break;
+          tokenCount++;
+          const genEl=$('#gen-output .generated');
+          if(genEl)genEl.textContent+=d.t;
+        }catch(e){}
+      }
+    }
+  }catch(e){$('#gen-output').innerHTML=`<div class="msg-err">Error: ${e.message}</div>`;}
+  const elapsed=((performance.now()-start)/1000).toFixed(1);
+  const cursor=$('#gen-output .cursor');
+  if(cursor)cursor.remove();
+  $('#gen-stats').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-box"><div class="val">${tokenCount}</div><div class="lbl">Tokens</div></div>
+      <div class="stat-box"><div class="val">${elapsed}s</div><div class="lbl">Time</div></div>
+      <div class="stat-box"><div class="val">${(tokenCount/elapsed).toFixed(1)}</div><div class="lbl">Tokens/s</div></div>
+    </div>`;
+  btn.disabled=false;btn.textContent='Generate';
+}
+
+/* ════════════════════ GALLERY ════════════════════ */
+const GALLERY=[
+  {cat:'Story Starter',prompt:'Once upon a time, there was a little',temp:.8,topk:40},
+  {cat:'Cause & Effect',prompt:'The dog was very happy because',temp:.8,topk:40},
+  {cat:'Action Sequence',prompt:'Lily went to the park and saw a',temp:.8,topk:40},
+  {cat:'Discovery',prompt:'One day, a boy named Tom found a',temp:.7,topk:50},
+  {cat:'Emotion',prompt:'She was sad because her',temp:.8,topk:40},
+  {cat:'Dialogue',prompt:'"Can I play with you?" asked the little',temp:.8,topk:40},
+  {cat:'Scene Setting',prompt:'The sun was shining and the birds were',temp:.7,topk:40},
+  {cat:'Lesson / Moral',prompt:'Mom said, "You should always be kind because',temp:.8,topk:50},
+];
+const FAILURES=[
+  {cat:'Math / Logic',prompt:'What is 2 + 2? The answer is',why:'Trained on stories, not math. Will hallucinate a narrative answer.'},
+  {cat:'Factual',prompt:'The capital of France is',why:'No factual knowledge in training data. Will generate story-like text.'},
+  {cat:'Code',prompt:'def fibonacci(n):\n    if n <= 1:',why:'Never saw code during training. Will produce gibberish.'},
+  {cat:'Non-English',prompt:'Il était une fois, dans un petit village',why:'Trained only on English TinyStories. French tokens are unknown subwords.'},
+  {cat:'Long Context',prompt:'There was a very long story about a princess who lived in a castle on top of a mountain far far away and she had a magical pet dragon named Sparky who could breathe fire and ice and they went on many adventures together through enchanted forests and across deep oceans until one day',why:'Approaches the 128-token context window limit. Model loses coherence.'},
+];
+
+function initGallery(){
+  const g=$('#gallery-grid');
+  g.innerHTML=GALLERY.map((p,i)=>`
+    <div class="gallery-card" onclick="runGalleryPrompt(${i})">
+      <div class="cat">${p.cat}</div>
+      <div class="prompt-preview">${escHtml(p.prompt)}</div>
+      <button class="btn btn-sm btn-primary">Generate</button>
+    </div>`).join('');
+  const f=$('#gallery-failures');
+  f.innerHTML=FAILURES.map((p,i)=>`
+    <div class="gallery-card">
+      <div class="cat">${p.cat}</div>
+      <div class="prompt-preview">${escHtml(p.prompt)}</div>
+      <p style="font-size:13px;color:var(--text3);margin:8px 0">${p.why}</p>
+      <button class="btn btn-sm" onclick="runFailurePrompt(${i})">Try anyway</button>
+    </div>`).join('');
+}
+
+async function runGalleryPrompt(i){
+  const p=GALLERY[i];
+  await generateToOutput('#gallery-output',p.prompt,150,p.temp,p.topk);
+}
+async function runFailurePrompt(i){
+  const p=FAILURES[i];
+  await generateToOutput('#gallery-output',p.prompt,100,.8,40);
+}
+
+async function generateToOutput(sel,prompt,maxTokens,temp,topk){
+  const el=$(sel);
+  el.innerHTML=`<div class="gen-output"><span class="prompt">${escHtml(prompt)}</span><span class="generated"></span><span class="cursor"></span></div>`;
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,max_new_tokens:maxTokens,temperature:temp,top_k:topk,top_p:0,repetition_penalty:1.2})});
+    const reader=res.body.getReader();
+    const decoder=new TextDecoder();
+    let buf='';
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        try{const d=JSON.parse(line.slice(6));if(!d.d){const g=el.querySelector('.generated');if(g)g.textContent+=d.t;}}catch(e){}
+      }
+    }
+  }catch(e){el.innerHTML=`<div class="msg-err">${e.message}</div>`;}
+  const c=el.querySelector('.cursor');if(c)c.remove();
+}
+
+/* ════════════════════ INTERNALS — ATTENTION ════════════════════ */
+let attnData=null;
+
+async function runAttention(){
+  const text=$('#attn-text').value;
+  if(!text){$('#attn-msg').innerHTML='<div class="msg-warn">Enter some text.</div>';return;}
+  $('#attn-msg').innerHTML='<div class="msg-info">Computing attention weights...</div>';
+  try{
+    attnData=await api('/api/attention',{text});
+    if(attnData.error){$('#attn-msg').innerHTML=`<div class="msg-err">${attnData.error}</div>`;return;}
+    // Populate selectors
+    const layerSel=$('#attn-layer');
+    const headSel=$('#attn-head');
+    layerSel.innerHTML=Array.from({length:attnData.n_layers},(_,i)=>`<option value="${i}">Layer ${i}</option>`).join('');
+    headSel.innerHTML=`<option value="avg">Average</option>`+Array.from({length:attnData.n_heads},(_,i)=>`<option value="${i}">Head ${i}</option>`).join('');
+    drawAttention();
+    $('#attn-msg').innerHTML='';
+  }catch(e){$('#attn-msg').innerHTML=`<div class="msg-err">${e.message}</div>`;}
+}
+
+function drawAttention(){
+  if(!attnData)return;
+  const layer=+$('#attn-layer').value;
+  const headVal=$('#attn-head').value;
+  const labels=attnData.labels;
+  const T=labels.length;
+
+  let weights;
+  if(headVal==='avg'){
+    weights=Array.from({length:T},(_,i)=>Array.from({length:T},(__,j)=>{
+      let sum=0;
+      for(let h=0;h<attnData.n_heads;h++)sum+=attnData.layers[layer][h][i][j];
+      return sum/attnData.n_heads;
+    }));
+  }else{
+    weights=attnData.layers[layer][+headVal];
+  }
+
+  const cellSize=Math.max(24,Math.min(40,600/T));
+  const margin=80;
+  const canvas=$('#attnCanvas');
+  const w=margin+T*cellSize+10;
+  const h=margin+T*cellSize+10;
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+
+  // Draw cells
+  for(let i=0;i<T;i++){
+    for(let j=0;j<T;j++){
+      const val=weights[i][j];
+      const r=Math.round(255*(1-val));
+      const g=Math.round(255*(1-val*.6));
+      const b=255;
+      ctx.fillStyle=`rgb(${r},${g},${b})`;
+      ctx.fillRect(margin+j*cellSize,margin+i*cellSize,cellSize-1,cellSize-1);
+    }
+  }
+
+  // Labels
+  ctx.fillStyle='#37352f';
+  ctx.font=`${Math.min(11,cellSize-4)}px Inter, sans-serif`;
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<T;i++){
+    const lbl=labels[i].replace(/ /g,'\u00B7').substring(0,8);
+    ctx.fillText(lbl,margin-4,margin+i*cellSize+cellSize/2);
+  }
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.save();
+  for(let j=0;j<T;j++){
+    ctx.save();
+    ctx.translate(margin+j*cellSize+cellSize/2,margin-4);
+    ctx.rotate(-Math.PI/3);
+    const lbl=labels[j].replace(/ /g,'\u00B7').substring(0,8);
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(lbl,0,0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+$('#attn-layer').addEventListener('change',drawAttention);
+$('#attn-head').addEventListener('change',drawAttention);
+
+/* ════════════════════ INTERNALS — PERPLEXITY ════════════════════ */
+function setPplInput(text){$('#ppl-input').value=text;}
+
+async function runPerplexity(){
+  const text=$('#ppl-input').value;
+  if(!text){$('#ppl-result').innerHTML='<div class="msg-warn">Enter some text.</div>';return;}
+  $('#ppl-result').innerHTML='<div class="msg-info">Computing...</div>';
+  try{
+    const d=await api('/api/perplexity',{text});
+    if(d.error){$('#ppl-result').innerHTML=`<div class="msg-err">${d.error}</div>`;return;}
+    if(d.perplexity===null){$('#ppl-result').innerHTML='<div class="msg-warn">Text too short (need at least 2 tokens).</div>';return;}
+    const ppl=d.perplexity;
+    let color,label;
+    if(ppl<50){color='var(--green)';label='Very familiar (in-domain)';}
+    else if(ppl<200){color='var(--orange)';label='Somewhat familiar';}
+    else{color='var(--red)';label='Very surprising (out-of-domain)';}
+    $('#ppl-result').innerHTML=`
+      <div class="ppl-score" style="color:${color}">${ppl.toFixed(1)}</div>
+      <div class="ppl-label">${label} &middot; ${d.token_count} tokens</div>`;
+  }catch(e){$('#ppl-result').innerHTML=`<div class="msg-err">${e.message}</div>`;}
+}
+
+/* ════════════════════ INIT ════════════════════ */
+async function init(){
+  // Load model info for overview tab
+  try{
+    const info=await api('/api/model-info');
+    if(info.available){
+      const c=info.config;
+      const paramStr=(info.param_count/1e6).toFixed(1)+'M';
+      $('#overview-config').innerHTML=`
+        <div class="stats-row">
+          <div class="stat-box"><div class="val">${paramStr}</div><div class="lbl">Parameters</div></div>
+          <div class="stat-box"><div class="val">${info.training_step.toLocaleString()}</div><div class="lbl">Training Steps</div></div>
+          <div class="stat-box"><div class="val">${c.vocab_size.toLocaleString()}</div><div class="lbl">Vocab Size</div></div>
+          <div class="stat-box"><div class="val">${c.context_length}</div><div class="lbl">Context Window</div></div>
+          <div class="stat-box"><div class="val">${info.merges.toLocaleString()}</div><div class="lbl">BPE Merges</div></div>
+        </div>
+        <table class="cfg-table" style="margin-top:20px">
+          <tr><td>Architecture</td><td>Decoder-only Transformer (GPT-2 pre-norm)</td></tr>
+          <tr><td>d_model</td><td>${c.d_model}</td></tr>
+          <tr><td>Attention heads</td><td>${c.n_heads}</td></tr>
+          <tr><td>Layers</td><td>${c.n_layers}</td></tr>
+          <tr><td>Feed-forward dim</td><td>${c.d_ff}</td></tr>
+          <tr><td>Context length</td><td>${c.context_length} tokens</td></tr>
+          <tr><td>Dropout</td><td>${c.dropout_rate}</td></tr>
+          <tr><td>Tokenizer</td><td>Byte-level BPE, ${c.vocab_size} vocab, ${info.special_tokens} special</td></tr>
+          <tr><td>Dataset</td><td>TinyStories (~2.1M children's stories)</td></tr>
+          <tr><td>Optimizer</td><td>AdamW (lr=3e-4, wd=0.1)</td></tr>
+          <tr><td>LR Schedule</td><td>Linear warmup + cosine decay</td></tr>
+          <tr><td>Weight tying</td><td>Yes (embedding = output projection)</td></tr>
+        </table>`;
+    }else{
+      $('#overview-config').innerHTML='<div class="msg-warn">Model checkpoint not found. Tokenizer tabs still work. Upload a checkpoint to <code>dataset/model-checkpoints/</code> to enable model features.</div>';
+    }
+  }catch(e){
+    $('#overview-config').innerHTML=`<div class="msg-err">Could not load model info: ${e.message}</div>`;
+  }
+
+  // Load tokenizer stats
+  try{
+    const st=await api('/api/stats');
+    // Prepend stats to overview
+  }catch(e){}
+
+  // Init gallery
+  initGallery();
+
+  // Load default merge table
+  searchMerges();
+
+  // Run default tokenize
+  runTokenize();
+}
+
+init();
+</script>
+</body>
+</html>
