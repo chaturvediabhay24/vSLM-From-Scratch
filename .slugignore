@@ -1,0 +1,7 @@
+dataset/tokens_parts/
+dataset/tiny-stories/
+dataset/personal-details/
+notebooks/
+venv/
+.ipynb_checkpoints/
+*.ipynb
