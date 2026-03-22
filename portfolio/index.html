@@ -462,7 +462,7 @@
     <section id="about" class="about">
       <div class="section-title">About</div>
       <p>
-        I've always been captivated by how technology can blend with creativity to solve real-world problems. With a B.Tech in Computer Science and 4+ years of experience in data science and machine learning, I build solutions that deliver tangible business impact &mdash; from deploying 120B-parameter LLMs on A100 GPUs to designing AI agents serving hundreds of users daily. Currently at Pegasystems, I develop generative AI services, evaluation frameworks, and scalable inference pipelines.
+        I've always been captivated by how technology can blend with creativity to solve real-world problems. With a B.Tech in Computer Science and 4+ years of experience in data science and machine learning, I build solutions that deliver tangible business impact &mdash; from deploying 120B-parameter LLMs on A100 GPUs to designing AI agents serving hundreds of users daily. I've also trained a small language model entirely from scratch, including building a custom byte-level BPE tokenizer, pretraining a decoder-only transformer on TinyStories, and fine-tuning it for text generation. Currently at Pegasystems, I develop generative AI services, evaluation frameworks, and scalable inference pipelines.
       </p>
     </section>
 
@@ -540,7 +540,7 @@
 
         <div class="project-card">
           <h3>LLM From Scratch</h3>
-          <p>Trained a ~5M parameter decoder-only transformer from scratch on TinyStories. Built the entire pipeline &mdash; byte-level BPE tokenizer (vocab 4096), parallel corpus encoding, PyTorch training loop with checkpointing, and a Streamlit demo app.</p>
+          <p>Trained a ~5M parameter decoder-only transformer from scratch &mdash; built a custom byte-level BPE tokenizer (vocab 4096), pretrained the model on TinyStories with cosine LR scheduling, and fine-tuned it for coherent story generation. Includes parallel corpus encoding, checkpointing, and an interactive demo.</p>
           <div class="project-meta">
             <div class="project-tags">
               <span class="project-tag">PyTorch</span>
