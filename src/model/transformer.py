@@ -113,6 +113,11 @@ class Transformer(nn.Module):
         self.ln_f = nn.LayerNorm(config.d_model)
         self.head = nn.Linear(config.d_model, config.vocab_size, bias=False)
 
+        # Weight tying: share token embedding and output projection weights.
+        # Standard in GPT-2 — critical for small models to reduce repetition
+        # and learn a consistent input/output embedding space.
+        self.head.weight = self.tok_emb.weight
+
         self.apply(self._init_weights)
 
     def _init_weights(self, module):
