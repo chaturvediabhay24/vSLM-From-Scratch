@@ -225,15 +225,17 @@ class Trainer:
 
     @torch.no_grad()
     def generate(self, tokenizer, prompt="Once upon a time",
-                 max_tokens=200, temperature=1.0, top_k=0):
+                 max_tokens=200, temperature=1.0, top_k=0,
+                 repetition_penalty=1.2):
         """Autoregressively generate text from a prompt.
 
         Args:
-            tokenizer:   BPETokenizer instance (for encode/decode).
-            prompt:      Starting text string.
-            max_tokens:  Maximum number of new tokens to generate.
-            temperature: Sampling temperature (lower = more greedy).
-            top_k:       If > 0, only sample from the top-k logits.
+            tokenizer:          BPETokenizer instance (for encode/decode).
+            prompt:             Starting text string.
+            max_tokens:         Maximum number of new tokens to generate.
+            temperature:        Sampling temperature (lower = more greedy).
+            top_k:              If > 0, only sample from the top-k logits.
+            repetition_penalty: Penalize already-generated tokens (1.0 = off, >1.0 = penalize).
 
         Returns:
             Generated text string (including the prompt).
@@ -251,7 +253,17 @@ class Trainer:
             # Crop to context window
             context = tokens[-self.model_config.context_length:]
             logits = model(context.unsqueeze(0))
-            next_logits = logits[0, -1] / temperature
+            next_logits = logits[0, -1]
+
+            # Repetition penalty: reduce scores of tokens already in the sequence
+            if repetition_penalty != 1.0:
+                for token_id in set(tokens.tolist()):
+                    if next_logits[token_id] > 0:
+                        next_logits[token_id] /= repetition_penalty
+                    else:
+                        next_logits[token_id] *= repetition_penalty
+
+            next_logits = next_logits / temperature
 
             # Optional top-k filtering
             if top_k > 0:
