@@ -48,7 +48,7 @@ def get_model():
     from src.model.transformer import Transformer
 
     device = torch.device("cpu")
-    ckpt_path = PROJECT_ROOT / "dataset" / "model-checkpoints" / "step_10000.pt"
+    ckpt_path = PROJECT_ROOT / "dataset" / "model-checkpoints" / "step_4000.pt"
     if not ckpt_path.exists():
         return None, None, device, 0
 

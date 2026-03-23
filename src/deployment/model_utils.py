@@ -17,7 +17,7 @@ import streamlit as st
 # Model loading
 # ------------------------------------------------------------------
 
-CHECKPOINT_PATH = PROJECT_ROOT / "dataset" / "model-checkpoints" / "step_10000.pt"
+CHECKPOINT_PATH = PROJECT_ROOT / "dataset" / "model-checkpoints" / "step_4000.pt"
 TOKENIZER_PATH = PROJECT_ROOT / "dataset" / "tokenizer.json"
 
 
