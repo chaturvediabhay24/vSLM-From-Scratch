@@ -366,6 +366,8 @@ function switchTab(id){
   document.querySelector(`.tab-btn[onclick*="${id}"]`).classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
 }
+// Open tab from URL hash (e.g. /demo#generate)
+if(location.hash){const t=location.hash.slice(1);if(document.getElementById('tab-'+t))switchTab(t);}
 
 /* ── API helpers ── */
 async function api(path,body){

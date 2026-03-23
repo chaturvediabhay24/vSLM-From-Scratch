@@ -27,6 +27,12 @@ _config = None
 _device = None
 _training_step = None
 
+# Fine-tuned model singletons
+_ft_model = None
+_ft_config = None
+_ft_device = None
+_ft_step = None
+
 
 def get_tokenizer():
     global _tokenizer
@@ -63,6 +69,30 @@ def get_model():
     return _model, _config, _device, _training_step
 
 
+def get_ft_model():
+    global _ft_model, _ft_config, _ft_device, _ft_step
+    if _ft_model is not None:
+        return _ft_model, _ft_config, _ft_device, _ft_step
+    import torch
+    from src.model.config import ModelConfig
+    from src.model.transformer import Transformer
+
+    device = torch.device("cpu")
+    ckpt_path = PROJECT_ROOT / "dataset" / "model-checkpoints" / "finetune_final.pt"
+    if not ckpt_path.exists():
+        return None, None, device, 0
+
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+    state = ckpt["model_state_dict"]
+    cfg = ModelConfig(context_length=state["pos_emb.weight"].shape[0])
+    model = Transformer(cfg)
+    model.load_state_dict(state)
+    model.eval()
+
+    _ft_model, _ft_config, _ft_device, _ft_step = model, cfg, device, ckpt.get("step", 0)
+    return _ft_model, _ft_config, _ft_device, _ft_step
+
+
 # ── Request schemas ───────────────────────────────────────────────
 
 
@@ -80,6 +110,14 @@ class GenerateRequest(BaseModel):
     temperature: float = 0.8
     top_k: int = 40
     top_p: float = 0.0
+    repetition_penalty: float = 1.2
+
+
+class ChatRequest(BaseModel):
+    question: str
+    max_new_tokens: int = 150
+    temperature: float = 1
+    top_k: int = 40
     repetition_penalty: float = 1.2
 
 
@@ -283,6 +321,60 @@ async def api_generate(req: GenerateRequest):
                 yield f"data: {json.dumps({'t': txt, 'd': False})}\n\n"
                 if nxt.item() == eos_id:
                     break
+
+        yield f"data: {json.dumps({'t': '', 'd': True})}\n\n"
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
+
+
+@app.post("/api/chat")
+async def api_chat(req: ChatRequest):
+    """Chat with the fine-tuned personal assistant model."""
+    model, config, device, _ = get_ft_model()
+    if model is None:
+        return {"error": "Fine-tuned model checkpoint not found"}
+    tok = get_tokenizer()
+
+    prompt = f"Question: {req.question} Answer:"
+
+    def stream():
+        import torch
+        import torch.nn.functional as F
+
+        tokens = torch.tensor(tok.encode(prompt), dtype=torch.long, device=device)
+        eos_id = tok.vocab_inverse.get("<EOS>", -1)
+
+        with torch.no_grad():
+            for _ in range(req.max_new_tokens):
+                ctx = tokens[-config.context_length:]
+                logits = model(ctx.unsqueeze(0))[0, -1].clone()
+
+                if req.repetition_penalty != 1.0:
+                    for tid in set(tokens.tolist()):
+                        if logits[tid] > 0:
+                            logits[tid] /= req.repetition_penalty
+                        else:
+                            logits[tid] *= req.repetition_penalty
+
+                logits /= max(req.temperature, 1e-8)
+
+                if req.top_k > 0:
+                    v, _ = torch.topk(logits, min(req.top_k, logits.size(-1)))
+                    logits[logits < v[-1]] = float("-inf")
+
+                probs = F.softmax(logits, dim=-1)
+                nxt = torch.multinomial(probs, 1)
+                tokens = torch.cat([tokens, nxt])
+
+                if nxt.item() == eos_id:
+                    break
+
+                try:
+                    txt = tok.decode([nxt.item()])
+                except Exception:
+                    txt = ""
+
+                yield f"data: {json.dumps({'t': txt, 'd': False})}\n\n"
 
         yield f"data: {json.dumps({'t': '', 'd': True})}\n\n"
 
